@@ -1,0 +1,27 @@
+name: Trigger Databricks Notebook on CSV Upload
+
+on:
+  push:
+    paths:
+      - "csv_datasets/*.csv"   # trigger only when a CSV is added or updated in this folder
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Databricks API
+        env:
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer $DATABRICKS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "run_name": "Auto-run on new CSV",
+              "existing_cluster_id": "55d7aa4b36fb26bd",
+              "notebook_task": {
+                "notebook_path": "/Workspace/Users/bineetece@gmail.com/Autonomous_Agent/File_Ingestion_Pandas"
+              }
+            }' \
+            $DATABRICKS_HOST/api/2.1/jobs/runs/submit
